@@ -1,1 +1,1 @@
-# FIPU---Praktikum
+# FIPU Praktikum

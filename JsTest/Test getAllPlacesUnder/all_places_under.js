@@ -1,8 +1,10 @@
 const places = require("./all_places");
+const allPlaces = places.get_all_places();
 
 module.exports = (place_id) => {
-	let result = [];
+	let getChildById = (id) => allPlaces.filter((p) => p.parentID == id);
 	let queue = getChildById(place_id);
+	let result = [];
 
 	while (queue.length != 0) {
 		let current = queue.shift();
@@ -12,7 +14,3 @@ module.exports = (place_id) => {
 
 	return result;
 };
-
-function getChildById(id) {
-	return places.get_all_places().filter((p) => p.parentID == id);
-}
