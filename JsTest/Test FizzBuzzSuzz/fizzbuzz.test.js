@@ -1,6 +1,6 @@
 const fizzBuzz = require("./fizzbuzz");
 
-describe("fizzBuzz", () => {
+describe.skip("fizzBuzz", () => {
 	test("ako je x=3 vrati fizz", () => {
 		expect(fizzBuzz(3)).toBe("Fizz");
 	});

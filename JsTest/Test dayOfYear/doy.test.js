@@ -1,6 +1,6 @@
 const doy = require("./doy");
 
-describe("dayOfYear", () => {
+describe.skip("dayOfYear", () => {
 	test("ako je year=2000, month=1, day=1 vrati 1", () => {
 		expect(doy(2000, 1, 1)).toBe(1);
 	});
