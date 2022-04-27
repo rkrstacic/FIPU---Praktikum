@@ -1,12 +1,3 @@
-/*
-let map = {
-    I: ["have", "am"],
-    have: ["been"],
-    good: [],
-    My: ["best"],
-};
-*/
-
 // I have been good. My best friend is not a fish. I am home.
 
 function generateIndex(source) {
@@ -14,11 +5,27 @@ function generateIndex(source) {
     const wordIndex = {};
 
     splitText.forEach((word, i) => {
+        let isStopWord = false;
+        const lastChar = word.slice(-1);
+
+        // Handling comma
+        if (lastChar == ",") {
+            word = word.slice(0, -1);
+        }
+
+        // Handling dot
+        if (lastChar == ".") {
+            word = word.slice(0, -1);
+            isStopWord = true;
+        }
+
         if (!wordIndex[word]) {
             wordIndex[word] = [];
         }
 
-        wordIndex[word].push(splitText[i + 1]);
+        if (!isStopWord) {
+            wordIndex[word].push(splitText[i + 1]);
+        }
     });
 
     return wordIndex;
