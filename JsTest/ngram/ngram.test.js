@@ -3,7 +3,7 @@ const { sourceText } = require("./sourceText");
 const { generateIndex } = require("./wordindex");
 const { splitter } = require("./splitter");
 
-describe("splitter", () => {
+describe.skip("splitter", () => {
     test("For 'abc' return ['abc']", () => {
         expect(splitter("abc")).toStrictEqual(["abc"]);
     });
@@ -16,7 +16,6 @@ describe("splitter", () => {
     });
     test("For 'abc def. ghi email.com hello...' return ['abc', 'def', '.', 'ghi', 'email.com', 'hello']", () => {
         const expected = ["abc", "def", ".", "ghi", "email.com", "hello"];
-        ["abc", "def", ".", "ghi", "email.com", "hello"];
         expect(splitter("abc def. ghi email.com hello...")).toStrictEqual(
             expected
         );
@@ -27,20 +26,26 @@ describe("splitter", () => {
             expected
         );
     });
+    test(`For 'I say: "hello, how are you?"' return ['I', 'say', '.', 'hello', 'how', 'are', 'you']`, () => {
+        const expected = ["I", "say", ".", "hello", "how", "are", "you"];
+        expect(splitter('I say: "hello, how are you?"')).toStrictEqual(
+            expected
+        );
+    });
 });
 
-describe.skip("ngram", () => {
+describe("ngram", () => {
     let index = undefined;
     beforeAll(() => {
-        index = generateIndex(sourceText);
+        index = generateIndex(sourceText, splitter);
     });
 
     test("For 'my' return ['best']", () => {
-        expect(ngram("My", index)).toStrictEqual(["best"]);
+        expect(ngram("my", index)).toStrictEqual(["best"]);
     });
 
-    test("For 'I' return ['have', 'am', 'say']", () => {
-        expect(ngram("I", index)).toStrictEqual(["have", "am", "say"]);
+    test("For 'i' return ['have', 'am', 'say']", () => {
+        expect(ngram("i", index)).toStrictEqual(["have", "am", "say"]);
     });
 
     test("For 'good' return []]", () => {
@@ -49,5 +54,9 @@ describe.skip("ngram", () => {
 
     test("For 'friend' return ['is']]", () => {
         expect(ngram("friend", index)).toStrictEqual(["is"]);
+    });
+
+    test("For 'I have' return ['been']]", () => {
+        expect(ngram("I have", index)).toStrictEqual(["been"]);
     });
 });
