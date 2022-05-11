@@ -1,5 +1,6 @@
 function ngram(searchTerm, index) {
-    return index[searchTerm];
+    searchTerm = searchTerm.toLowerCase();
+    return index[searchTerm] ?? [];
 }
 
 module.exports = { ngram };
