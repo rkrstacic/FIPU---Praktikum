@@ -1,59 +1,127 @@
-// I have been good. My best friend is not a fish. I am home.
+let wordIndex, queue, queueInProcess;
 
-function generateIndex(source) {
-    let splitText = source.split(" ");
-    const wordIndex = {};
+// Checks if two arrays are equal by values (order matters)
+// Source: https://stackoverflow.com/questions/3115982/how-to-check-if-two-arrays-are-equal-with-javascript
+function arraysEqual(a, b) {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length !== b.length) return false;
 
-    splitText.forEach((word, i) => {
-        let isStopWord = false;
-        const lastChar = word.slice(-1);
+    for (let i = 0; i < a.length; ++i) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+}
 
-        // Handling comma
-        if (lastChar == ",") {
-            word = word.slice(0, -1);
+// Generates indices of all occurrences where slice matches part of the array
+function* findAllSlices(phraseArr, textArr) {
+    const sliceLen = textArr.length - phraseArr.length;
+
+    for (let i = 0; i < sliceLen; i++) {
+        let tempSlice = textArr.slice(i, i + phraseArr.length);
+
+        // Phrase found in textArr
+        if (arraysEqual(tempSlice, phraseArr)) {
+            yield i;
         }
+    }
+}
 
-        // Handling dot
-        if (lastChar == ".") {
-            word = word.slice(0, -1);
-            isStopWord = true;
-        }
+// Store the phrase into wordIndex
+function storeToIndex(phrase, isLastWord, nextWord) {
+    let isNextBreakword = nextWord == ".";
 
-        if (!wordIndex[word]) {
-            wordIndex[word] = [];
-        }
+    // Add to the dictionary if it doesn't exist and is not a stopword
+    if (!wordIndex[phrase]) {
+        wordIndex[phrase] = [];
+    }
 
-        if (!isStopWord) {
-            wordIndex[word].push(splitText[i + 1]);
+    // Push if not breakword
+    if (!isNextBreakword && !isLastWord) {
+        wordIndex[phrase].push(nextWord);
+    }
+}
+
+// Processes a single phrase
+function processPhrase(phrase, splitText) {
+    const phraseSplit = phrase.split(" ");
+    const sliceLen = splitText.length - phraseSplit.length;
+
+    // If phrase contains breakword or has already been processed
+    if (phrase.includes(".") || wordIndex[phrase]) {
+        return;
+    }
+
+    // For all occurances of phrase in splitText
+    for (const index of findAllSlices(phraseSplit, splitText)) {
+        const nextWord = splitText[index + phraseSplit.length];
+        const isLastWord = index == sliceLen;
+        storeToIndex(phrase, isLastWord, nextWord);
+    }
+}
+
+// Processes all phrases within queueInProcess
+function processQueue(splitText) {
+    for (const currentPhrase of queueInProcess) {
+        for (const suggestion of wordIndex[currentPhrase]) {
+            let nextPhrase = currentPhrase + " " + suggestion;
+            processPhrase(nextPhrase, splitText);
+            queue.push(nextPhrase);
         }
+    }
+}
+
+// Processes all phrases that start with a specific word until maxdepth is reached
+function deepProcessWord(word, splitText, maxdepth = 3) {
+    // Breakchar doesnt change wordIndex. No suggestions are given for breakchar
+    if (word == ".") {
+        return;
+    }
+
+    word = word.toLowerCase();
+    processPhrase(word, splitText);
+
+    queueInProcess = [word];
+    queue = [];
+
+    for (let depth = 1; depth < maxdepth; depth++) {
+        processQueue(splitText);
+        queueInProcess = [...queue];
+        queue = [];
+    }
+}
+
+// Function that generates index for ngram
+function generateIndex(source, splitterFunc, maxdepth = 3) {
+    wordIndex = {};
+
+    let splitText = splitterFunc(source).map((word) => word.toLowerCase());
+    splitText.forEach((word) => {
+        deepProcessWord(word, splitText, maxdepth);
     });
 
     return wordIndex;
 }
 
-function generateIndex_v2(source, splitterFunc) {
-    let splitText = splitterFunc(source);
-    const wordIndex = {};
+module.exports = { generateIndex, arraysEqual };
 
-    splitText.forEach((word, i) => {
-        word = word.toLowerCase();
-        let isBreakword = word != ".";
-        let isNextBreakword = splitText[i + 1] != ".";
-        let isLastWord = splitText.length - 1 != i;
+/*
+_______ Depth = 1 ________
+Suggestions = (): []
+Process 1
 
-        // Add to the dictionary if it doesn't exist and is not a stopword
-        if (!wordIndex[word] && isBreakword) {
-            wordIndex[word] = [];
-        }
 
-        // Push if not breakword
-        if (isBreakword && isNextBreakword && isLastWord) {
-            wordIndex[word].push(splitText[i + 1]);
-        }
-    });
+_______ Depth = 2 ________
+Suggestions = (1): [2, 3]
+Process 1 2
+Process 1 3
 
-    console.log(wordIndex);
-    return wordIndex;
-}
 
-module.exports = { generateIndex: generateIndex_v2 };
+_______ Depth = 3 ________
+Suggestions (1 2): [5, 9]
+Process 1 2 5
+Process 1 2 9
+
+Suggestions (1 3): [11]
+Process 1 3 11
+*/
