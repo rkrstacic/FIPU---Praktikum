@@ -31,4 +31,29 @@ function generateIndex(source) {
     return wordIndex;
 }
 
-module.exports = { generateIndex };
+function generateIndex_v2(source, splitterFunc) {
+    let splitText = splitterFunc(source);
+    const wordIndex = {};
+
+    splitText.forEach((word, i) => {
+        word = word.toLowerCase();
+        let isBreakword = word != ".";
+        let isNextBreakword = splitText[i + 1] != ".";
+        let isLastWord = splitText.length - 1 != i;
+
+        // Add to the dictionary if it doesn't exist and is not a stopword
+        if (!wordIndex[word] && isBreakword) {
+            wordIndex[word] = [];
+        }
+
+        // Push if not breakword
+        if (isBreakword && isNextBreakword && isLastWord) {
+            wordIndex[word].push(splitText[i + 1]);
+        }
+    });
+
+    console.log(wordIndex);
+    return wordIndex;
+}
+
+module.exports = { generateIndex: generateIndex_v2 };
