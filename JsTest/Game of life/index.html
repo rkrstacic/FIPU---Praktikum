@@ -1,0 +1,96 @@
+<script>
+    let x = 400;
+    let y = 400;
+
+    let grid = create_empty_grid(y);
+    let grid_next_gen = create_empty_grid(y);
+
+    // Grid init
+    for (let xi = 0; xi < x; xi++) {
+        for (let yi = 0; yi < y; yi++) {
+            grid[xi][yi] = Math.round(Math.random());
+        }
+    }
+
+    // Creates empty 2d array of custom size
+    function create_empty_grid(size) {
+        let arr = [];
+        for (let i = 0; i < size; i++) {
+            arr[i] = [];
+        }
+        return arr;
+    }
+
+    // Gets the number of alive neighbours in grid for the specific cell row and col
+    function get_neighbours(row, col) {
+        return (
+            grid[row - 1][col - 1] +
+            grid[row - 1][col] +
+            grid[row - 1][col + 1] +
+            grid[row][col - 1] +
+            grid[row][col + 1] +
+            grid[row + 1][col - 1] +
+            grid[row + 1][col] +
+            grid[row + 1][col + 1]
+        );
+    }
+
+    // Paints the grid on ctx given the pixel size
+    function paint_grid(ctx, pixel_size = 1) {
+        for (let xi = 1; xi < x; xi++) {
+            for (let yi = 1; yi < y; yi++) {
+                if (grid[xi][yi] == 1) {
+                    ctx.fillStyle = "#FF0000";
+                    ctx.fillRect(xi, yi, pixel_size, pixel_size);
+                }
+            }
+        }
+    }
+
+    // Updates grid_next_gen
+    function update_grid_next_gen() {
+        for (let xi = 1; xi < x - 1; xi++) {
+            for (let yi = 1; yi < y - 1; yi++) {
+                let neighbours = get_neighbours(xi, yi);
+
+                // If the cell is dead
+                if (grid[xi][yi] == 0) {
+                    grid_next_gen[xi][yi] = neighbours == 3;
+                }
+
+                // If the cell is alive
+                else if (grid[xi][yi] == 1) {
+                    grid_next_gen[xi][yi] = neighbours == 2 || neighbours == 3;
+                }
+            }
+        }
+    }
+
+    // Copies grid_next_gen to grid
+    function copy_to_grid() {
+        for (let xi = 0; xi < x; xi++) {
+            for (let yi = 0; yi < y; yi++) {
+                grid[xi][yi] = grid_next_gen[xi][yi];
+            }
+        }
+    }
+
+    // Main game tick
+    function main_tick() {
+        let canvas = document.getElementById("myCanvas");
+        let ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, x, y);
+
+        paint_grid(ctx);
+        update_grid_next_gen();
+        copy_to_grid();
+
+        requestAnimationFrame(main_tick);
+    }
+</script>
+
+<html>
+    <body onload="main_tick()">
+        <canvas id="myCanvas" width="400" height="400"></canvas>
+    </body>
+</html>
